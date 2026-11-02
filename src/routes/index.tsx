@@ -22,24 +22,26 @@ export const Route = createFileRoute("/")({
 
 async function downloadPdf(text: string) {
   const { jsPDF } = await import("jspdf");
+  const { layoutPages, sanitizeForPdf, splitResumeBlocks } = await import("@/lib/pdf");
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const margin = 20;
+  const margin = 18;
   const width = doc.internal.pageSize.getWidth() - margin * 2;
-  const pageH = doc.internal.pageSize.getHeight();
-  let y = margin;
+  const usable = doc.internal.pageSize.getHeight() - margin * 2;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
-  for (const para of text.split("\n")) {
-    const lines: string[] = para.trim() ? doc.splitTextToSize(para, width) : [""];
-    for (const line of lines) {
-      if (y > pageH - margin) {
-        doc.addPage();
-        y = margin;
-      }
-      doc.text(line, margin, y);
-      y += 6;
+  const clean = sanitizeForPdf(text);
+  const blocks = splitResumeBlocks(clean).map((b) =>
+    b.split("\n").flatMap((line) => (line.trim() ? (doc.splitTextToSize(line, width) as string[]) : [""])),
+  );
+  const { pages, lineHeightMm } = layoutPages(blocks, usable, 6);
+  pages.forEach((pageLines, i) => {
+    if (i > 0) doc.addPage();
+    let y = margin + 4;
+    for (const line of pageLines) {
+      if (line) doc.text(line, margin, y);
+      y += lineHeightMm;
     }
-  }
+  });
   doc.save("curriculo-organizado.pdf");
 }
 
@@ -142,11 +144,11 @@ function Index() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <KeywordList title="Encontradas no currículo" items={result.found} tone="found" empty="Nenhuma palavra-chave da vaga foi encontrada." />
-              <KeywordList title="Não encontradas no currículo" items={result.missing} tone="missing" empty="Todas as palavras-chave foram encontradas." />
+              <KeywordList title="Não mencionadas no currículo" items={result.missing} tone="missing" empty="Todas as palavras-chave foram encontradas." />
             </div>
             {result.missing.length > 0 && (
               <p className="text-sm text-muted-foreground">
-                Os itens não encontrados não são adicionados ao currículo. Inclua-os somente se fizerem parte da sua experiência real.
+                Os itens não mencionados são apenas pontos a confirmar — não significam que você não tenha essa experiência. Eles nunca são adicionados ao currículo: inclua-os somente se fizerem parte da sua experiência real.
               </p>
             )}
 
