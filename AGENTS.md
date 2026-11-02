@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Resume analysis runs entirely client-side in src/lib/analyzer.ts (no external AI/APIs); the organized resume may only reorder original text blocks, never add content.
