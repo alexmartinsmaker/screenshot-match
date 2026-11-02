@@ -78,7 +78,8 @@ export function layoutPages(
 ): LayoutResult {
   const pages = layout(blocks, usableHeightMm, lineHeightMm);
   if (pages.length > 1) {
-    const lastContentLines = pages[pages.length - 1].filter((l) => l !== "").length;
+    const lastPage = pages.at(-1) ?? [];
+    const lastContentLines = lastPage.filter((l) => l !== "").length;
     if (lastContentLines * lineHeightMm < minLastPageFraction * usableHeightMm) {
       const compactLineHeight = lineHeightMm * 0.85;
       const compact = layout(blocks, usableHeightMm, compactLineHeight);
