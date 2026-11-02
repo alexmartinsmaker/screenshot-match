@@ -39,7 +39,7 @@ function layout(blocks: string[][], usableMm: number, lineHeightMm: number): str
   const fits = (extraLines: number) => (current.length + extraLines) * lineHeightMm <= usableMm + 1e-6;
 
   const closePage = () => {
-    while (current.length && current[current.length - 1] === "") current.pop();
+    while (current.length > 0 && current.at(-1) === "") current.pop();
     if (current.length) pages.push(current);
     current = [];
   };
